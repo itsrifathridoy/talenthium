@@ -304,8 +304,7 @@ export default function ProjectsPage() {
                         <span>Filter</span>
                     </button>
                 </div>
-                <Link
-                    href={"/projects/create"}
+                <button
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
                         theme === 'dark'
                             ? 'bg-white/10 border-white/20 text-[#13ff8c] hover:shadow-[0_0_12px_2px_rgba(19,255,140,0.25)] hover:border-[#13ff8c] hover:text-[#19fb9b]'
@@ -317,7 +316,7 @@ export default function ProjectsPage() {
                 >
                     <FaPlus className="text-base" />
                     <span>Add Project</span>
-                </Link>
+                </button>
             </div>
             {/* Filter projects by search term (title or description, case-insensitive) */}
             {(() => {
