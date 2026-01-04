@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +40,11 @@ public class AuthController {
     private final TempAccountService tempAccountService;
     private final UserService userService;
     private final UserCreatedPublisher userCreatedPublisher;
+    @Value("${app.jwt.expiration}")
+    private long jwtExpirationMs;
+
+    @Value("${app.jwt.refresh-expiration}")
+    private long refreshExpirationMs;
     @GetMapping("/oauth/success")
     public ResponseEntity<?> oauthSuccess(HttpServletRequest request) {
         String token = (String) request.getAttribute("accessToken");
@@ -67,14 +73,24 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         TokenPair tokenPair = authService.login(loginRequest);
-        ResponseCookie resCookie = ResponseCookie.from("refresh_token", tokenPair.getRefreshToken())
+        //access token in response for 15 minutes
+        //refresh token in httpOnly cookie for 7 days
+        ResponseCookie accessCookie = ResponseCookie.from("access_token", tokenPair.getAccessToken())
                 .httpOnly(true)
                 .sameSite("None")
                 .secure(true)
                 .path("/")
-                .maxAge(Math.toIntExact(9999999))
+                .maxAge(jwtExpirationMs/1000)
                 .build();
-        response.addHeader("Set-Cookie", resCookie.toString());
+        response.addHeader("Set-Cookie", accessCookie.toString());
+        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", tokenPair.getRefreshToken())
+                .httpOnly(true)
+                .sameSite("None")
+                .secure(true)
+                .path("/")
+                .maxAge(refreshExpirationMs/1000)
+                .build();
+        response.addHeader("Set-Cookie", refreshCookie.toString());
         return ResponseEntity.ok(tokenPair);
     }
 
@@ -103,35 +119,65 @@ public class AuthController {
 
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@CookieValue("refresh_token") String refreshTokenCookie) {
-        if(refreshTokenCookie == null)
+    public ResponseEntity<?> refreshToken(@CookieValue(value = "refresh_token", required = false) String refreshTokenCookie,HttpServletResponse response) {
+        if(refreshTokenCookie == null || refreshTokenCookie.isBlank())
             return ResponseEntity.badRequest().body("Refresh token is missing");
         log.info("Refresh token received: {}", refreshTokenCookie);
 
         TokenPair tokenPair = authService.refreshToken(refreshTokenCookie);
+
+        ResponseCookie accessCookie = ResponseCookie.from("access_token", tokenPair.getAccessToken())
+                .httpOnly(true)
+                .sameSite("None")
+                .secure(true)
+                .path("/")
+                .maxAge(jwtExpirationMs/1000)
+                .build();
+        response.addHeader("Set-Cookie", accessCookie.toString());
+        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", tokenPair.getRefreshToken())
+                .httpOnly(true)
+                .sameSite("None")
+                .secure(true)
+                .path("/")
+                .maxAge(refreshExpirationMs/1000)
+                .build();
+        response.addHeader("Set-Cookie", refreshCookie.toString());
         return ResponseEntity.ok(tokenPair);
     }
 
-    @GetMapping("/debug-roles")
-    public ResponseEntity<?> debugRoles(Authentication authentication) {
-        if (authentication == null) {
-            return ResponseEntity.ok("Not authenticated");
-        }
-        return ResponseEntity.ok(
-                Map.of("principal", authentication.getPrincipal(),
-                        "authorities", authentication.getAuthorities().stream()
-                                .map(GrantedAuthority::getAuthority)
-                                .collect(Collectors.toList()))
-        );
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        log.info("User logging out");
+
+        // Clear access token cookie
+        ResponseCookie accessCookie = ResponseCookie.from("access_token", "")
+                .httpOnly(true)
+                .sameSite("None")
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+        response.addHeader("Set-Cookie", accessCookie.toString());
+
+        // Clear refresh token cookie
+        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .sameSite("None")
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+        response.addHeader("Set-Cookie", refreshCookie.toString());
+
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
 
     @GetMapping("/test-redis")
     public TempAccount TestRedis() {
-        TempAccount tempAccount = tempAccountService.createTempAccount(
+        return tempAccountService.createTempAccount(
                 "john_doe", "John Doe", "john@example.com",
                 "+1234567890", LocalDate.of(1990, 1, 1), "hashedPassword"
         );
-        return tempAccount;
     }
 
     @PostMapping("/test-kafka")

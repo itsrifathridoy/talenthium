@@ -12,10 +12,10 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 import tech.talenthium.authservice.filter.JwtAuthenticationFilter;
 import tech.talenthium.authservice.security.*;
 
@@ -31,19 +31,14 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final CustomOidcUserService customOidcUserService;
-
-    // Password encoder
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    private final PasswordEncoder passwordEncoder;
 
     // Authentication provider for JWT and username/password login
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
+        authProvider.setPasswordEncoder(passwordEncoder);
         return authProvider;
     }
 
@@ -57,11 +52,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // CORS is handled by API Gateway, disable here to avoid conflicts
+                .cors(cors -> cors.disable())
+
                 // Disable CSRF since we use JWT
                 .csrf(csrf -> csrf.disable())
 
                 // Authorize requests
                 .authorizeHttpRequests(req -> req
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow CORS preflight
                         .requestMatchers("/api/auth/**", "/api/auth/oauth2/**", "/login/oauth2/code/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/company", "/api/company/*").permitAll()
@@ -86,14 +85,13 @@ public class SecurityConfig {
                         )
                         .redirectionEndpoint(redirectionEndpointConfig ->
                                 redirectionEndpointConfig.baseUri("/login/oauth2/code/*")
-                                )
+                        )
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
                                 .oidcUserService(customOidcUserService)
 
                         )
                         .successHandler(oAuth2AuthenticationSuccessHandler)
-//                                .defaultSuccessUrl("http://localhost:3000",true)
                         .failureHandler((request, response, exception) -> {
                             System.out.println(exception.getMessage());
                             response.sendRedirect("/api/auth/oauth2/error"); // custom page

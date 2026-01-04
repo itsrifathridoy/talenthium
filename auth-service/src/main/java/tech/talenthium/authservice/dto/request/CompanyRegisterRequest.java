@@ -7,8 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import tech.talenthium.authservice.annotation.UniqueCompanyEmail;
 import tech.talenthium.authservice.annotation.UniqueCompanyName;
+import tech.talenthium.authservice.annotation.UniqueCompanyEmail;
 import tech.talenthium.authservice.annotation.UniqueCompanyPhone;
 import tech.talenthium.authservice.annotation.UniqueCompanyWebsite;
 

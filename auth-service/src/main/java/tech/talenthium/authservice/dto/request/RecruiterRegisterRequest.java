@@ -9,10 +9,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import tech.talenthium.authservice.entity.Role;
+
+import tech.talenthium.authservice.annotation.ValidCompanyId;
+import tech.talenthium.authservice.annotation.UniqueUsername;
 import tech.talenthium.authservice.annotation.UniqueUserEmail;
 import tech.talenthium.authservice.annotation.UniqueUserPhone;
-import tech.talenthium.authservice.annotation.UniqueUsername;
-import tech.talenthium.authservice.entity.Role;
 
 import java.time.LocalDate;
 

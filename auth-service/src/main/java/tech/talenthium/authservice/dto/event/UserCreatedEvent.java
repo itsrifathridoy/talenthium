@@ -2,6 +2,7 @@ package tech.talenthium.authservice.dto.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import tech.talenthium.authservice.entity.Role;
 

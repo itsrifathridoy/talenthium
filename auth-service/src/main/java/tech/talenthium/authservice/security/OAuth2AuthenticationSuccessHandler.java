@@ -4,6 +4,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -26,6 +27,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    @Value("${app.oauth2.redirect-uri:http://localhost:3000}")
+    private String redirectUri;
+
+        @Value("${app.jwt.expiration}")
+        private long accessExpirationMs;
+
+        @Value("${app.jwt.refresh-expiration}")
+        private long refreshExpirationMs;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
@@ -39,15 +49,24 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                         .orElseThrow(() -> new UnauthorizeException("User not found")))
                 .expiresAt(jwtService.extractExpirationFromToken(tokenPair.getRefreshToken()))
                 .build();
-        ResponseCookie resCookie = ResponseCookie.from("refresh_token", tokenPair.getRefreshToken())
+        ResponseCookie refresh_token = ResponseCookie.from("refresh_token", tokenPair.getRefreshToken())
                 .httpOnly(true)
                 .sameSite("None")
                 .secure(true)
                 .path("/")
-                .maxAge(Math.toIntExact(9999999))
+                .maxAge(Math.toIntExact(refreshExpirationMs / 1000))
                 .build();
-        response.addHeader("Set-Cookie", resCookie.toString());
-        response.sendRedirect("http://localhost:3000");
+        response.addHeader("Set-Cookie", refresh_token.toString());
+
+        ResponseCookie access_token = ResponseCookie.from("access_token", tokenPair.getAccessToken())
+                .httpOnly(true)
+                .sameSite("None")
+                .secure(true)
+                .path("/")
+                .maxAge(Math.toIntExact(accessExpirationMs / 1000))
+                .build();
+        response.addHeader("Set-Cookie", access_token.toString());
+        response.sendRedirect(redirectUri);
         refreshTokenRepository.save(refreshToken);
     }
 }

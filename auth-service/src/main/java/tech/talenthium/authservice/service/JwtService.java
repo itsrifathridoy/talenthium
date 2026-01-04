@@ -17,6 +17,7 @@ import tech.talenthium.authservice.dto.response.TokenPair;
 import tech.talenthium.authservice.entity.User;
 import tech.talenthium.authservice.exception.JwtExpiredException;
 import tech.talenthium.authservice.exception.NotFoundException;
+import tech.talenthium.authservice.repository.UserRepository;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
@@ -38,7 +39,7 @@ public class JwtService {
     @Value("${app.jwt.refresh-expiration}")
     private long refreshExpirationMs;
 
-    private final UserService userService;
+    private final UserRepository userRepository;
 
 
     public TokenPair generateTokenPair(Authentication authentication) {
@@ -67,7 +68,7 @@ public class JwtService {
     }
 
     public TokenPair generateOAuthTokenPair(OAuth2User oAuth2User){
-        User user = userService.findByEmail(oAuth2User.getAttribute("email"))
+        User user = userRepository.findByEmail(oAuth2User.getAttribute("email"))
                 .orElseThrow(() -> new NotFoundException("User not found"));
         String accessToken = generateOAuthAccessToken(user);
         String refreshToken = generateOAuthRefreshToken(user);
@@ -112,7 +113,7 @@ public class JwtService {
 
         // Generate token
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+        Date expiryDate = new Date(now.getTime() + refreshExpirationMs);
 
         return Jwts.builder()
                 .header()
@@ -149,7 +150,7 @@ public class JwtService {
         Date now = new Date(); // Time of token creation
         Date expiryDate = new Date(now.getTime() + expirationInMs); // Time of token expiration
 
-        User user =userService.findByUsername(userPrincipal.getUsername()).orElseThrow();
+        User user = userRepository.findByUsername(userPrincipal.getUsername()).orElseThrow();
 
         return Jwts.builder()
                 .header()
@@ -201,10 +202,8 @@ public class JwtService {
     }
 
     private Claims extractAllClaims(String token) {
-        Claims claims = null;
-
         try {
-            claims = Jwts.parser()
+            return Jwts.parser()
                     .verifyWith(getSignInKey())
                     .build()
                     .parseSignedClaims(token)
@@ -212,8 +211,6 @@ public class JwtService {
         } catch (JwtException | IllegalArgumentException e) {
             throw new JwtExpiredException("Expired or invalid JWT token");
         }
-
-        return claims;
     }
 
     private SecretKey getSignInKey() {

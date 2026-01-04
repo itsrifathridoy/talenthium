@@ -1,15 +1,23 @@
 package tech.talenthium.authservice.exception;
 
 import org.springframework.data.mapping.PropertyReferenceException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.lang.Nullable;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import tech.talenthium.authservice.dto.response.ErrorResponse;
 
 import java.util.Date;
@@ -18,6 +26,22 @@ import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<?> handleBadCredentialsException(
+            BadCredentialsException exception,
+            WebRequest request
+    ) {
+
+        return new ResponseEntity<>(ErrorResponse.builder()
+                .statusCode(HttpStatus.UNAUTHORIZED.value())
+                .message("Invalid username or password")
+                .errors(exception.getMessage())
+                .timestamp(new Date())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build(), HttpStatus.UNAUTHORIZED);
+
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidationExceptions(

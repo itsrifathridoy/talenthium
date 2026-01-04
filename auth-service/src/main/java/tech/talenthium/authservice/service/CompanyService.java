@@ -11,6 +11,7 @@ import tech.talenthium.authservice.entity.Company;
 import tech.talenthium.authservice.entity.CompanyRecruiter;
 import tech.talenthium.authservice.entity.CompanyRole;
 import tech.talenthium.authservice.entity.User;
+import tech.talenthium.authservice.exception.NotFoundException;
 import tech.talenthium.authservice.repository.CompanyRecruiterRepository;
 import tech.talenthium.authservice.repository.CompanyRepository;
 
@@ -33,7 +34,6 @@ public class CompanyService {
         {
             throw new IllegalStateException("A recruiter can only own one company");
         }
-
 
         Company company = Company.builder()
                 .name(request.getName())
