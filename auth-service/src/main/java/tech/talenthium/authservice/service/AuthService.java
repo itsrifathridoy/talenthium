@@ -79,10 +79,25 @@ public class AuthService {
                 .role(developerRegisterRequest.getRole())
                 .build();
 
-        userRepository.save(user);
+        User createdUser = userRepository.save(user);
+        UserCreatedEvent userCreatedEvent = UserCreatedEvent.builder()
+                .userId(createdUser.getUserID())
+                .email(createdUser.getEmail())
+                .username(createdUser.getUsername())
+                .name(createdUser.getName())
+                .role(createdUser.getRole())
+                .createdAt(createdUser.getRegisterDate())
+                .build();
+        userCreatedPublisher.emitEvent(userCreatedEvent);
     }
 
     public TokenPair login(LoginRequest loginRequest) {
+        //username is email then find user by email
+        if (loginRequest.getUsername() != null && loginRequest.getUsername().matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            User userByEmail = userRepository.findByEmail(loginRequest.getUsername())
+                    .orElseThrow(() -> new UnauthorizeException("Invalid username or password"));
+            loginRequest.setUsername(userByEmail.getUsername());
+        }
         // Authenticate the user
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -114,8 +129,8 @@ public class AuthService {
         }
 
         String user = jwtService.extractUsernameFromToken(refreshTokenCookie);
+        log.info("Refreshing token for user: {}", userDetailsService.loadUserByUsername(user));
         UserDetails userDetails = userDetailsService.loadUserByUsername(user);
-
         if (userDetails == null) {
             throw new UnauthorizeException("User not found");
         }
