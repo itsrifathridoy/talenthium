@@ -18,12 +18,24 @@ spring:
                 - Path=/project-service/**
               filters:
                 - StripPrefix=1
+            - id: job-services
+              uri: lb://job-services
+              predicates:
+                - Path=/job-services/**
+              filters:
+                - StripPrefix=1
           default-filters:
             - AuthenticationPreFilter
+            # Remove duplicate CORS headers (keep the first value, drop '*')
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_FIRST
           discovery:
             locator:
               enabled: true
               lower-case-service-id: true
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:thissidsdkfkjsakfjdsksdjfkasddjfkdasjfdskfjskdjfkdasjfdkdsjfkdjf}
 
 server:
   port: 8088
