@@ -68,7 +68,7 @@ export const TopJobs = ({ theme = 'dark' }: { theme?: 'light' | 'dark' }) => {
           <div key={i} className={`rounded-xl p-5 border shadow-inner relative transition-all duration-300 flex flex-col gap-0 ${
             theme === 'dark' 
               ? 'bg-white/5 border-white/10' 
-              : 'bg-white/80 border-emerald-200/50'
+              : 'bg-white/80 border-blue-300/50'
           }`}>
             {/* Main Row: Logo, Info, Actions */}
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full">
@@ -94,7 +94,7 @@ export const TopJobs = ({ theme = 'dark' }: { theme?: 'light' | 'dark' }) => {
             }`}>
               {job.meta.map((m, idx) => (
                 <span key={idx} className="flex items-center gap-1"><span className={
-                  theme === 'dark' ? 'text-[#13ff8c]' : 'text-emerald-600'
+                  theme === 'dark' ? 'text-[#13ff8c]' : 'text-blue-700'
                 }>{m.icon}</span>{m.label}</span>
               ))}
             </div>
@@ -103,7 +103,7 @@ export const TopJobs = ({ theme = 'dark' }: { theme?: 'light' | 'dark' }) => {
                 <span key={idx} className={`px-3 py-1 rounded-full text-xs font-semibold ${
                   theme === 'dark' 
                     ? 'bg-[#13ff8c]/10 text-[#13ff8c]' 
-                    : 'bg-emerald-100/70 text-emerald-700'
+                    : 'bg-blue-100/70 text-blue-800'
                 }`}>{s}</span>
               ))}
             </div>
@@ -129,13 +129,13 @@ export const TopJobs = ({ theme = 'dark' }: { theme?: 'light' | 'dark' }) => {
             <button className={`px-5 py-2 rounded-full font-semibold text-sm shadow transition ${
               theme === 'dark' 
                 ? 'bg-black text-white hover:bg-[#13ff8c] hover:text-black' 
-                : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                : 'bg-blue-700 text-white hover:bg-blue-800'
             }`}>View job</button>
                 <button
                   className={`flex items-center gap-2 mt-2 px-4 py-2 rounded-full border text-sm font-semibold shadow-lg backdrop-blur-[4px] transition-all duration-200 focus:outline-none hover:scale-105 ${
                     theme === 'dark'
                       ? 'bg-gradient-to-r from-[#1a2a22]/70 via-[#13ff8c]/10 to-[#0a1813]/70 border-[#13ff8c]/30 text-[#13ff8c] focus:ring-2 focus:ring-[#13ff8c] hover:shadow-[0_0_12px_2px_rgba(19,255,140,0.25)] hover:border-[#13ff8c] hover:text-[#19fb9b]'
-                      : 'bg-gradient-to-r from-white/80 via-emerald-50/80 to-white/80 border-emerald-300/50 text-emerald-700 focus:ring-2 focus:ring-emerald-500 hover:shadow-[0_0_12px_2px_rgba(16,185,129,0.25)] hover:border-emerald-500 hover:text-emerald-800'
+                      : 'bg-gradient-to-r from-white/80 via-blue-50/80 to-white/80 border-blue-400/50 text-blue-800 focus:ring-2 focus:ring-blue-600 hover:shadow-[0_0_12px_2px_rgba(37,99,235,0.3)] hover:border-blue-600 hover:text-blue-900'
                   }`}
                   onClick={() => toggleExpand(i)}
                   aria-expanded={expanded[i]}
