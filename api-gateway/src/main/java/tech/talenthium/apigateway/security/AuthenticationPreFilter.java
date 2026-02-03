@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +27,7 @@ import tech.talenthium.apigateway.dto.response.ErrorResponse;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.List;
+
 @Slf4j
 @Component
 public class AuthenticationPreFilter extends AbstractGatewayFilterFactory<AuthenticationPreFilter.Config> {
@@ -60,24 +62,61 @@ public class AuthenticationPreFilter extends AbstractGatewayFilterFactory<Authen
                 ServerHttpRequest request = exchange.getRequest();
                 String path = request.getURI().getPath();
                 HttpHeaders headers = request.getHeaders();
-                String token = headers.getFirst("Authorization");
+                String authHeader = headers.getFirst("Authorization");
                 log.info("Path received {}",path);
+                
+                // Allow OPTIONS requests (CORS preflight) to pass through
+                if("OPTIONS".equalsIgnoreCase(request.getMethod().name())){
+                    log.info("OPTIONS request - allowing CORS preflight");
+                    return chain.filter(exchange);
+                }
+                
                 if(isExcludePath(path)){
                     return chain.filter(exchange);
                 }
-                if(token == null || !token.startsWith("Bearer ")){
-                    log.info("Missing or invalid Authorization header");
-                    return handleAuthError(exchange,"Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED);
+
+                // Determine token: prefer Authorization header, then cookies
+                String token = null;
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    token = authHeader.substring(7);
+                } else {
+                    HttpCookie accessCookie = request.getCookies().getFirst("access_token");
+                    HttpCookie refreshCookie = request.getCookies().getFirst("refresh_token");
+
+                    if (accessCookie != null && !accessCookie.getValue().isBlank()) {
+                        token = accessCookie.getValue();
+                    } else {
+                        // Accept refresh_token from cookies only on refresh token endpoint
+                        boolean isRefreshEndpoint = path.endsWith("/api/auth/refresh-token") || path.contains("/api/auth/refresh-token");
+                        if (isRefreshEndpoint && refreshCookie != null && !refreshCookie.getValue().isBlank()) {
+                            token = refreshCookie.getValue();
+                        }
+                    }
                 }
-                log.info("Token received {}",token);
-                token = token.substring(7);
+
+                if(token == null || token.isBlank()){
+                    log.info("Missing token in Authorization header or cookies");
+                    return handleAuthError(exchange,"Missing token in Authorization header or cookies", HttpStatus.UNAUTHORIZED);
+                }
+
+                log.info("Token resolved from {}", (authHeader != null && authHeader.startsWith("Bearer ")) ? "Authorization header" : "cookies");
+
                 Claims claims = Jwts.parser()
                         .verifyWith(getSignInKey())
                         .build()
                         .parseSignedClaims(token)
                         .getPayload();
+
+                // Disallow refresh tokens on non-refresh endpoints
+                boolean isRefreshEndpoint = path.endsWith("/api/auth/refresh-token") || path.contains("/api/auth/refresh-token");
+                String tokenType = claims.get("tokenType", String.class);
+                if ("refresh".equals(tokenType) && !isRefreshEndpoint) {
+                    log.info("Refresh token used outside refresh endpoint");
+                    return handleAuthError(exchange, "Refresh token is only accepted on /api/auth/refresh-token", HttpStatus.UNAUTHORIZED);
+                }
+
                 String userID = claims.getSubject();
-                String role = claims.get("role").toString();
+                String role = claims.get("role").toString().split("_")[1];
                 String username = claims.get("username").toString();
 
                 log.info("User {} logged in",username);
