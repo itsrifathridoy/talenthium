@@ -3,6 +3,7 @@ import React from 'react';
 import ThemeSwitcher from '@/components/auth/ThemeSwitcher';
 import RadialGlow from '@/components/auth/RadialGlow';
 import GridOverlay from '@/components/auth/GridOverlay';
+import { AuthProvider } from '@/lib/auth-context';
 // Create a context for theme
 export const AuthThemeContext = React.createContext<{
   theme: 'light' | 'dark';
@@ -42,22 +43,24 @@ export default function AuthLayout({
 
   return (
     
-    <AuthThemeContext.Provider value={{ theme, setTheme }}>
-      <div className={`relative min-h-screen flex flex-col items-center justify-center overflow-hidden ${theme === 'dark' 
-        ? 'bg-gradient-to-br from-[#030d09] via-[#071e16] to-[#062e22]' 
-        : 'bg-[radial-gradient(circle_at_20%_20%,#ecfdf5_0%,#d1fae5_35%,#f0fdfa_75%)]'} `}> 
-        <div className="absolute top-6 right-8 z-20">
-          <ThemeSwitcher theme={theme} setTheme={setTheme} />
-        </div>
-        <RadialGlow theme={theme} />
-        <GridOverlay theme={theme} />
-        <div className="relative z-10 w-full flex flex-col items-center">
-          {children}
-          <div className={`mt-8 text-xs text-center w-full ${theme === 'dark' ? 'text-gray-500' : 'text-green-900'}`}>
-            Copyright © 2025 Talenthium. All Rights Reserved.
+    <AuthProvider>
+      <AuthThemeContext.Provider value={{ theme, setTheme }}>
+        <div className={`relative min-h-screen flex flex-col items-center justify-center overflow-hidden ${theme === 'dark' 
+          ? 'bg-gradient-to-br from-[#030a0d] via-[#071620] to-[#062233]' 
+          : 'bg-[radial-gradient(circle_at_20%_20%,#dbeafe_0%,#93c5fd_35%,#bfdbfe_75%)]'}`}> 
+          <div className="absolute top-6 right-8 z-20">
+            <ThemeSwitcher theme={theme} setTheme={setTheme} />
+          </div>
+          <RadialGlow theme={theme} />
+          <GridOverlay theme={theme} />
+          <div className="relative z-10 w-full flex flex-col items-center">
+            {children}
+            <div className={`mt-8 text-xs text-center w-full ${theme === 'dark' ? 'text-gray-500' : 'text-blue-950'}`}>
+              Copyright © 2025 Talenthium. All Rights Reserved.
+            </div>
           </div>
         </div>
-      </div>
-    </AuthThemeContext.Provider>
+      </AuthThemeContext.Provider>
+    </AuthProvider>
   );
 }

@@ -11,10 +11,10 @@ function SidebarItem({ icon, label, active = false, onClick, theme = 'dark' }: {
         ${active 
           ? theme === 'dark'
             ? "bg-white/10 text-[#13ff8c] font-semibold border-l-4 border-[#13ff8c] shadow-[0_2px_16px_0_rgba(19,255,140,0.15)]"
-            : "bg-emerald-100/70 text-emerald-700 font-semibold border-l-4 border-emerald-500 shadow-[0_2px_16px_0_rgba(16,185,129,0.2)]"
+            : "bg-blue-100/70 text-blue-800 font-semibold border-l-4 border-blue-600 shadow-[0_2px_16px_0_rgba(37,99,235,0.25)]"
           : theme === 'dark'
             ? "hover:bg-white/5 hover:text-[#13ff8c] text-white"
-            : "hover:bg-emerald-50/70 hover:text-emerald-600 text-slate-700"
+            : "hover:bg-blue-50/70 hover:text-blue-700 text-slate-700"
         }
       `}
       onClick={onClick}
@@ -25,7 +25,7 @@ function SidebarItem({ icon, label, active = false, onClick, theme = 'dark' }: {
         <span className={`absolute left-0 top-0 h-full w-1 rounded-r-lg animate-pulse ${
           theme === 'dark' 
             ? 'bg-gradient-to-b from-[#13ff8c] to-transparent' 
-            : 'bg-gradient-to-b from-emerald-500 to-transparent'
+            : 'bg-gradient-to-b from-blue-600 to-transparent'
         }`} />
       )}
     </div>
@@ -39,14 +39,14 @@ export const SideBar = ({ active = 'Home', theme = 'dark' }: { active?: string; 
       <aside className={`fixed top-0 left-0 h-screen w-64 ${
         theme === 'dark' 
           ? 'bg-gradient-to-br from-[#1a2a22]/80 to-[#0a1813]/80 backdrop-blur-md border-r border-white/10' 
-          : 'bg-gradient-to-br from-white/90 to-emerald-50/90 backdrop-blur-md border-r border-emerald-200/50'
+          : 'bg-gradient-to-br from-white/90 to-blue-100/90 backdrop-blur-md border-r border-blue-300/50'
       } flex flex-col p-6 gap-6 rounded-tr-2xl rounded-br-2xl shadow-2xl z-30`}>
         {/* Brand */}
         <div className="flex items-center gap-3 mb-6">
           <div className={`w-10 h-10 rounded-full ${
             theme === 'dark' 
               ? 'bg-gradient-to-tr from-[#13ff8c] to-[#0a1813]' 
-              : 'bg-gradient-to-tr from-emerald-500 to-emerald-700'
+              : 'bg-gradient-to-tr from-blue-600 to-blue-800'
           } flex items-center justify-center shadow-lg`}>
             <span className="font-bold text-lg text-white">T</span>
           </div>
@@ -76,11 +76,11 @@ export const SideBar = ({ active = 'Home', theme = 'dark' }: { active?: string; 
           </Link>
           {/* Section Divider */}
           <div className="flex items-center gap-2 my-4">
-            <span className={`flex-1 h-px ${theme === 'dark' ? 'bg-white/10' : 'bg-emerald-200/50'}`} />
+            <span className={`flex-1 h-px ${theme === 'dark' ? 'bg-white/10' : 'bg-blue-300/50'}`} />
             <span className={`text-xs font-semibold tracking-wider ${
-              theme === 'dark' ? 'text-[#13ff8c]' : 'text-emerald-600'
+              theme === 'dark' ? 'text-[#13ff8c]' : 'text-blue-700'
             }`}>COMMUNITY</span>
-            <span className={`flex-1 h-px ${theme === 'dark' ? 'bg-white/10' : 'bg-emerald-200/50'}`} />
+            <span className={`flex-1 h-px ${theme === 'dark' ? 'bg-white/10' : 'bg-blue-300/50'}`} />
           </div>
           <Link href={"/community"}>
             <SidebarItem icon={<FaUsers />} label="Community" active={active === 'Community'} theme={theme} />
@@ -90,11 +90,11 @@ export const SideBar = ({ active = 'Home', theme = 'dark' }: { active?: string; 
           </Link>
           {/* Section Divider */}
           <div className="flex items-center gap-2 my-4">
-            <span className={`flex-1 h-px ${theme === 'dark' ? 'bg-white/10' : 'bg-emerald-200/50'}`} />
+            <span className={`flex-1 h-px ${theme === 'dark' ? 'bg-white/10' : 'bg-blue-300/50'}`} />
             <span className={`text-xs font-semibold tracking-wider ${
-              theme === 'dark' ? 'text-[#13ff8c]' : 'text-emerald-600'
+              theme === 'dark' ? 'text-[#13ff8c]' : 'text-blue-700'
             }`}>UTILITY</span>
-            <span className={`flex-1 h-px ${theme === 'dark' ? 'bg-white/10' : 'bg-emerald-200/50'}`} />
+            <span className={`flex-1 h-px ${theme === 'dark' ? 'bg-white/10' : 'bg-blue-300/50'}`} />
           </div>
           <SidebarItem icon={<FaHeadset />} label="Support" active={active === 'Support'} theme={theme} />
         </nav>
