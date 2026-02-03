@@ -1,0 +1,1 @@
+package tech.talenthium.notificationservice.config;
